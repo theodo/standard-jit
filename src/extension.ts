@@ -1,26 +1,35 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import { ExtensionContext, languages, commands, Disposable, workspace, window } from 'vscode';
+import { CodelensProvider } from './CodelensProvider';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "standard-jit" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('standard-jit.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from standard-jit!');
-	});
+let disposables: Disposable[] = [];
 
-	context.subscriptions.push(disposable);
+export function activate(context: ExtensionContext) {
+    const codelensProvider = new CodelensProvider();
+
+    languages.registerCodeLensProvider("*", codelensProvider);
+
+    commands.registerCommand("standard-jit.enableCodeLens", () => {
+        workspace.getConfiguration("standard-jit").update("enableCodeLens", true, true);
+    });
+
+    commands.registerCommand("standard-jit.disableCodeLens", () => {
+        workspace.getConfiguration("standard-jit").update("enableCodeLens", false, true);
+    });
+
+    commands.registerCommand("standard-jit.codelensAction", (args: any) => {
+        window.showInformationMessage(`CodeLens action clicked with args=${args}`);
+    });
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+    if (disposables) {
+        disposables.forEach(item => item.dispose());
+    }
+    disposables = [];
+}
