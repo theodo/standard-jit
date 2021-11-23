@@ -7,6 +7,9 @@ import {
   Disposable,
   workspace,
   window,
+  env,
+  Uri,
+  QuickPickItem
 } from "vscode";
 import { CodelensProvider } from "./CodelensProvider";
 
@@ -14,6 +17,13 @@ import { CodelensProvider } from "./CodelensProvider";
 // your extension is activated the very first time the command is executed
 
 let disposables: Disposable[] = [];
+
+interface RedirectionQuickPickItem extends QuickPickItem {
+  url: Uri;
+}
+
+const formatLinkLabel = (matchedText: string, url: string) =>
+  `${matchedText} -> ${url}`;
 
 export function activate(context: ExtensionContext) {
   const codelensProvider = new CodelensProvider();
@@ -33,9 +43,18 @@ export function activate(context: ExtensionContext) {
   });
 
   commands.registerCommand("standard-jit.codelensAction", (...args: any[]) => {
-    window.showInformationMessage(
-      `Because you typed ${args[0]},\nyou may be interested by these standards: ${args[1]}`
-    );
+    const [matchedText, urls] = args;
+    const quickPick = window.createQuickPick<RedirectionQuickPickItem>();
+    quickPick.canSelectMany = false;
+    quickPick.items = urls.map((url: string) => ({
+      label: formatLinkLabel(matchedText, url),
+      url: Uri.parse(url),
+    }));
+
+    quickPick.onDidChangeSelection((selection) => {
+      env.openExternal(selection[0].url);
+    });
+    quickPick.show();
   });
 }
 
