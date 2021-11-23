@@ -11,15 +11,15 @@ const buildRegex = () => {
 };
 
 class CustomCodeLens extends vscode.CodeLens {
-  public matchingLine: string;
+  public matchingStandardKeyword: string;
 
   constructor(
-    matchingLine: string,
+    matchingStandardKeyword: string,
     range: vscode.Range,
     command?: vscode.Command
   ) {
     super(range, command);
-    this.matchingLine = matchingLine;
+    this.matchingStandardKeyword = matchingStandardKeyword;
   }
 }
 
@@ -87,8 +87,11 @@ export class CodelensProvider
         title: "Some technical standards may be of interest to you",
         tooltip: "",
         command: "standard-jit.codelensAction",
-        // @ts-ignore
-        arguments: [codeLens.matchingLine, standardKeywordToUrlMapping[codeLens.matchingLine]],
+        arguments: [
+          codeLens.matchingStandardKeyword,
+          // @ts-ignore
+          standardKeywordToUrlMapping[codeLens.matchingStandardKeyword],
+        ],
       };
       return codeLens;
     }

@@ -9,7 +9,7 @@ import {
   window,
   env,
   Uri,
-  QuickPickItem
+  QuickPickItem,
 } from "vscode";
 import { CodelensProvider } from "./CodelensProvider";
 
@@ -23,7 +23,7 @@ interface RedirectionQuickPickItem extends QuickPickItem {
 }
 
 const formatLinkLabel = (matchedText: string, url: string) =>
-  `${matchedText} -> ${url}`;
+  `${matchedText} -> ${url.split("/m33/")[1].split("-").slice(undefined, -1).join("-")}`;
 
 export function activate(context: ExtensionContext) {
   const codelensProvider = new CodelensProvider();

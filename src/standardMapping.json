@@ -1,3 +1,9 @@
 {
-  "@material-ui": ["https://www.notion.so/m33/Quelles-sont-les-bonnes-pratiques-pour-utiliser-efficacement-Material-UI-433968ca6d6844afa30b043645fecacb"]
+  "@material-ui": [
+    "https://www.notion.so/m33/Quelles-sont-les-bonnes-pratiques-pour-utiliser-efficacement-Material-UI-433968ca6d6844afa30b043645fecacb",
+    "https://www.notion.so/m33/How-to-choose-your-CSS-Stack-and-technos-between-SCSS-styled-components-BEM-CSS-Modules-Material-92d94e9315a648ae9573cfce6c094b25"
+  ],
+  "dynamodb": [
+    "https://www.notion.so/m33/How-to-run-an-efficient-DynamoDB-query-672068c0f5244de1b49a57074fde044f"
+  ]
 }
