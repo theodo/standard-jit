@@ -2,18 +2,34 @@ import * as vscode from "vscode";
 import standardKeywordToUrlMapping from "./standardMapping.json";
 
 const buildRegex = () => {
-  const regex = new RegExp(Object.keys(standardKeywordToUrlMapping).join('|'), "g");
-
-  console.log(regex);
+  const regex = new RegExp(
+    Object.keys(standardKeywordToUrlMapping).join("|"),
+    "g"
+  );
 
   return regex;
 };
 
+class CustomCodeLens extends vscode.CodeLens {
+  public matchingLine: string;
+
+  constructor(
+    matchingLine: string,
+    range: vscode.Range,
+    command?: vscode.Command
+  ) {
+    super(range, command);
+    this.matchingLine = matchingLine;
+  }
+}
+
 /**
  * CodelensProvider
  */
-export class CodelensProvider implements vscode.CodeLensProvider {
-  private codeLenses: vscode.CodeLens[] = [];
+export class CodelensProvider
+  implements vscode.CodeLensProvider<CustomCodeLens>
+{
+  private codeLenses: CustomCodeLens[] = [];
   private regex: RegExp;
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
@@ -31,7 +47,7 @@ export class CodelensProvider implements vscode.CodeLensProvider {
   public provideCodeLenses(
     document: vscode.TextDocument,
     token: vscode.CancellationToken
-  ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
+  ): CustomCodeLens[] | Thenable<CustomCodeLens[]> {
     if (
       vscode.workspace
         .getConfiguration("standard-jit")
@@ -50,7 +66,7 @@ export class CodelensProvider implements vscode.CodeLensProvider {
           new RegExp(this.regex)
         );
         if (range) {
-          this.codeLenses.push(new vscode.CodeLens(range));
+          this.codeLenses.push(new CustomCodeLens(matches[0], range));
         }
       }
       return this.codeLenses;
@@ -59,7 +75,7 @@ export class CodelensProvider implements vscode.CodeLensProvider {
   }
 
   public resolveCodeLens(
-    codeLens: vscode.CodeLens,
+    codeLens: CustomCodeLens,
     token: vscode.CancellationToken
   ) {
     if (
@@ -68,10 +84,11 @@ export class CodelensProvider implements vscode.CodeLensProvider {
         .get("enableCodeLens", true)
     ) {
       codeLens.command = {
-        title: "Codelens provided by sample extension",
-        tooltip: "Tooltip provided by sample extension",
+        title: "Some technical standards may be of interest to you",
+        tooltip: "",
         command: "standard-jit.codelensAction",
-        arguments: ["Argument 1", false],
+        // @ts-ignore
+        arguments: [codeLens.matchingLine, standardKeywordToUrlMapping[codeLens.matchingLine]],
       };
       return codeLens;
     }
