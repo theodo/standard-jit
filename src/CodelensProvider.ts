@@ -46,7 +46,7 @@ export class CodelensProvider
 
   public provideCodeLenses(
     document: vscode.TextDocument,
-    token: vscode.CancellationToken
+    _: vscode.CancellationToken
   ): CustomCodeLens[] | Thenable<CustomCodeLens[]> {
     if (
       vscode.workspace
@@ -57,6 +57,7 @@ export class CodelensProvider
       const regex = new RegExp(this.regex);
       const text = document.getText();
       let matches;
+
       while ((matches = regex.exec(text)) !== null) {
         const line = document.lineAt(document.positionAt(matches.index).line);
         const indexOf = line.text.indexOf(matches[0]);
@@ -65,18 +66,21 @@ export class CodelensProvider
           position,
           new RegExp(this.regex)
         );
+
         if (range) {
           this.codeLenses.push(new CustomCodeLens(matches[0], range));
         }
       }
+
       return this.codeLenses;
     }
+
     return [];
   }
 
   public resolveCodeLens(
     codeLens: CustomCodeLens,
-    token: vscode.CancellationToken
+    _: vscode.CancellationToken
   ) {
     if (
       vscode.workspace

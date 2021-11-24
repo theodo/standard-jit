@@ -22,8 +22,17 @@ interface RedirectionQuickPickItem extends QuickPickItem {
   url: Uri;
 }
 
-const formatLinkLabel = (matchedText: string, url: string) =>
-  `${matchedText} -> ${url.split("/m33/")[1].split("-").slice(undefined, -1).join("-")}`;
+const formatLinkLabel = (matchedText: string, url: string) => {
+  try {
+    return `${matchedText} -> ${url
+      .split("/m33/")[1]
+      .split("-")
+      .slice(undefined, -1)
+      .join("-")}`;
+  } catch (e) {
+    return url;
+  }
+};
 
 export function activate(context: ExtensionContext) {
   const codelensProvider = new CodelensProvider();
@@ -42,20 +51,24 @@ export function activate(context: ExtensionContext) {
       .update("enableCodeLens", false, true);
   });
 
-  commands.registerCommand("standard-jit.codelensAction", (...args: any[]) => {
-    const [matchedText, urls] = args;
-    const quickPick = window.createQuickPick<RedirectionQuickPickItem>();
-    quickPick.canSelectMany = false;
-    quickPick.items = urls.map((url: string) => ({
-      label: formatLinkLabel(matchedText, url),
-      url: Uri.parse(url),
-    }));
+  commands.registerCommand(
+    "standard-jit.codelensAction",
+    (matchedText: string, urls: string[]) => {
+      const quickPick = window.createQuickPick<RedirectionQuickPickItem>();
+      quickPick.canSelectMany = false;
 
-    quickPick.onDidChangeSelection((selection) => {
-      env.openExternal(selection[0].url);
-    });
-    quickPick.show();
-  });
+      quickPick.items = urls.map((url: string) => ({
+        label: formatLinkLabel(matchedText, url),
+        url: Uri.parse(url),
+      }));
+
+      quickPick.onDidChangeSelection((selection) => {
+        env.openExternal(selection[0].url);
+      });
+
+      quickPick.show();
+    }
+  );
 }
 
 // this method is called when your extension is deactivated
