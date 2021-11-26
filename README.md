@@ -4,6 +4,8 @@
 
 Display Theodo technical standards directly in your IDE !
 
+![extension demo gif](./docs/extension-standard-jit.gif)
+
 
 ## Installation
 
