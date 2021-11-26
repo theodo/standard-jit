@@ -15,7 +15,7 @@
   "transition:": [
     "https://www.notion.so/m33/How-to-keep-a-high-rendering-performance-eb3daa68ce074327a8f314b68d0aaa8f"
   ],
-  ".query(": [
+  ".query\\(": [
     "https://www.notion.so/m33/How-to-run-an-efficient-DynamoDB-query-672068c0f5244de1b49a57074fde044f"
   ],
   "react-devtools": [

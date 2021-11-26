@@ -2,6 +2,9 @@
   "name": "standard-jit",
   "displayName": "standard-jit",
   "description": "Show standards associated with written code",
+  "repository": "https://github.com/theodo/standard-jit",
+  "publisher": "AleBlondin",
+  "license": "MIT",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.62.0"
