@@ -38,9 +38,6 @@ const formatLinkLabel = (matchedText: string, url: string) => {
 };
 
 export function activate(context: ExtensionContext) {
-  // This cleans the state, uncomment it for debugging purposes
-  // context.globalState.update("standardUrisToHide", undefined);
-
   const codelensProvider = new CodelensProvider(context.globalState);
 
   languages.registerCodeLensProvider("*", codelensProvider);
@@ -63,6 +60,10 @@ export function activate(context: ExtensionContext) {
       hideStandard(context.globalState)(standardUri);
     }
   );
+
+  commands.registerCommand("standard-jit.unhideStandards", () => {
+    context.globalState.update(standardUrisToHideKey, undefined);
+  });
 
   commands.registerCommand(
     "standard-jit.codelensAction",

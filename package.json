@@ -24,6 +24,11 @@
         "title": "Disable",
         "command": "standard-jit.disableCodeLens",
         "category": "Standard JIT"
+      },
+      {
+        "title": "Unhide standards",
+        "command": "standard-jit.unhideStandards",
+        "category": "Standard JIT"
       }
     ],
     "configuration": {
