@@ -12,14 +12,17 @@ import {
   QuickPickItem,
 } from "vscode";
 import { CodelensProvider } from "./CodelensProvider";
+import { hideStandard, standardUrisToHideKey } from "./standardsToHide";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
 let disposables: Disposable[] = [];
 
+type QuickPickItemType = "link" | "hide";
 interface RedirectionQuickPickItem extends QuickPickItem {
-  url: Uri;
+  url: string;
+  type: QuickPickItemType;
 }
 
 const formatLinkLabel = (matchedText: string, url: string) => {
@@ -35,7 +38,10 @@ const formatLinkLabel = (matchedText: string, url: string) => {
 };
 
 export function activate(context: ExtensionContext) {
-  const codelensProvider = new CodelensProvider();
+  // This cleans the state, uncomment it for debugging purposes
+  // context.globalState.update("standardUrisToHide", undefined);
+
+  const codelensProvider = new CodelensProvider(context.globalState);
 
   languages.registerCodeLensProvider("*", codelensProvider);
 
@@ -52,18 +58,45 @@ export function activate(context: ExtensionContext) {
   });
 
   commands.registerCommand(
+    "standard-jit.hideStandard",
+    (standardUri: string) => {
+      hideStandard(context.globalState)(standardUri);
+    }
+  );
+
+  commands.registerCommand(
     "standard-jit.codelensAction",
     (matchedText: string, urls: string[]) => {
       const quickPick = window.createQuickPick<RedirectionQuickPickItem>();
       quickPick.canSelectMany = false;
 
-      quickPick.items = urls.map((url: string) => ({
+      const urlsToHide =
+        context.globalState.get<string[]>(standardUrisToHideKey) || [];
+      const urlsToDisplay = urls.filter((url) => !urlsToHide.includes(url));
+
+      const linkQuickPickItems = urlsToDisplay.map((url: string) => ({
         label: formatLinkLabel(matchedText, url),
-        url: Uri.parse(url),
+        url: url,
+        type: "link" as QuickPickItemType,
+      }));
+      const hideQuickPickItems = urlsToDisplay.map((url) => ({
+        label: `Hide this standard: ${formatLinkLabel(matchedText, url)}`,
+        url: url,
+        type: "hide" as QuickPickItemType,
       }));
 
+      quickPick.items = [...linkQuickPickItems, ...hideQuickPickItems];
+
       quickPick.onDidChangeSelection((selection) => {
-        env.openExternal(selection[0].url);
+        const { type, url } = selection[0];
+        console.log({ type, url });
+        if (type === "link") {
+          env.openExternal(Uri.parse(url));
+        }
+        if (type === "hide") {
+          commands.executeCommand("standard-jit.hideStandard", url);
+          quickPick.dispose();
+        }
       });
 
       quickPick.show();

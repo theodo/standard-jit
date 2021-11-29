@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import standardKeywordToUrlMapping from "./standardMapping.json";
+import { standardUrisToHideKey } from "./standardsToHide";
 
 const buildRegex = () => {
   const regex = new RegExp(
@@ -31,13 +32,15 @@ export class CodelensProvider
 {
   private codeLenses: CustomCodeLens[] = [];
   private regex: RegExp;
+  private globalState: vscode.Memento;
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  constructor() {
+  constructor(globalState: vscode.Memento) {
     this.regex = buildRegex();
+    this.globalState = globalState;
 
     vscode.workspace.onDidChangeConfiguration((_) => {
       this._onDidChangeCodeLenses.fire();
@@ -56,19 +59,30 @@ export class CodelensProvider
       this.codeLenses = [];
       const regex = new RegExp(this.regex);
       const text = document.getText();
+      const urlsToHide =
+        this.globalState.get<string[]>(standardUrisToHideKey) || [];
+
       let matches;
 
       while ((matches = regex.exec(text)) !== null) {
         const line = document.lineAt(document.positionAt(matches.index).line);
-        const indexOf = line.text.indexOf(matches[0]);
+        const matchedKeyword =
+          matches[0] as keyof typeof standardKeywordToUrlMapping;
+
+        const indexOf = line.text.indexOf(matchedKeyword);
         const position = new vscode.Position(line.lineNumber, indexOf);
         const range = document.getWordRangeAtPosition(
           position,
           new RegExp(this.regex)
         );
 
-        if (range) {
-          this.codeLenses.push(new CustomCodeLens(matches[0], range));
+        const areAllStandardsAssociatedWithKeywordHidden =
+          standardKeywordToUrlMapping[matchedKeyword].every((url) => {
+            return urlsToHide.includes(url);
+          });
+
+        if (range && !areAllStandardsAssociatedWithKeywordHidden) {
+          this.codeLenses.push(new CustomCodeLens(matchedKeyword, range));
         }
       }
 
