@@ -10,12 +10,13 @@ const buildRegex = () => {
 
   return regex;
 };
+type StandardKeywordType = keyof typeof standardKeywordToUrlMapping;
 
 class CustomCodeLens extends vscode.CodeLens {
-  public matchingStandardKeyword: string;
+  public matchingStandardKeyword: StandardKeywordType;
 
   constructor(
-    matchingStandardKeyword: string,
+    matchingStandardKeyword: StandardKeywordType,
     range: vscode.Range,
     command?: vscode.Command
   ) {
@@ -67,7 +68,7 @@ export class CodelensProvider
       while ((matches = regex.exec(text)) !== null) {
         const line = document.lineAt(document.positionAt(matches.index).line);
         const matchedKeyword =
-          matches[0] as keyof typeof standardKeywordToUrlMapping;
+          matches[0] as StandardKeywordType;
 
         const indexOf = line.text.indexOf(matchedKeyword);
         const position = new vscode.Position(line.lineNumber, indexOf);
@@ -107,7 +108,6 @@ export class CodelensProvider
         command: "standard-jit.codelensAction",
         arguments: [
           codeLens.matchingStandardKeyword,
-          // @ts-ignore
           standardKeywordToUrlMapping[codeLens.matchingStandardKeyword],
         ],
       };
