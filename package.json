@@ -2,7 +2,10 @@
   "name": "standard-jit",
   "displayName": "standard-jit",
   "description": "Show standards associated with written code",
-  "repository": "https://github.com/theodo/standard-jit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theodo/standard-jit"
+  },
   "publisher": "AleBlondin",
   "license": "MIT",
   "version": "0.2.0",
