@@ -66,20 +66,20 @@ export function activate(context: ExtensionContext) {
 
   commands.registerCommand(
     "standard-jit.codelensAction",
-    (matchedText: string, urls: string[]) => {
+    (matchedText: string, uris: string[]) => {
       const quickPick = window.createQuickPick<RedirectionQuickPickItem>();
       quickPick.canSelectMany = false;
 
-      const urlsToHide =
+      const urisToHide =
         context.globalState.get<string[]>(standardUrisToHideKey) || [];
-      const urlsToDisplay = urls.filter((url) => !urlsToHide.includes(url));
+      const urisToDisplay = uris.filter((url) => !urisToHide.includes(url));
 
-      const linkQuickPickItems = urlsToDisplay.map((url: string) => ({
+      const linkQuickPickItems = urisToDisplay.map((url: string) => ({
         label: formatLinkLabel(matchedText, url),
         url: url,
         type: "link" as QuickPickItemType,
       }));
-      const hideQuickPickItems = urlsToDisplay.map((url) => ({
+      const hideQuickPickItems = urisToDisplay.map((url) => ({
         label: `Hide this standard: ${formatLinkLabel(matchedText, url)}`,
         url: url,
         type: "hide" as QuickPickItemType,
@@ -89,14 +89,15 @@ export function activate(context: ExtensionContext) {
 
       quickPick.onDidChangeSelection((selection) => {
         const { type, url } = selection[0];
-        console.log({ type, url });
+
         if (type === "link") {
           env.openExternal(Uri.parse(url));
         }
         if (type === "hide") {
           commands.executeCommand("standard-jit.hideStandard", url);
-          quickPick.dispose();
         }
+
+        quickPick.dispose();
       });
 
       quickPick.show();

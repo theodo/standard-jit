@@ -1,27 +1,27 @@
 import * as vscode from "vscode";
-import standardKeywordToUrlMapping from "./standardMapping.json";
+import standardKeywordToUriMapping from "./standardMapping.json";
 import { standardUrisToHideKey } from "./standardsToHide";
 
-const buildRegex = () => {
+const buildKeywordMatchingRegex = () => {
   const regex = new RegExp(
-    Object.keys(standardKeywordToUrlMapping).join("|"),
+    Object.keys(standardKeywordToUriMapping).join("|"),
     "g"
   );
 
   return regex;
 };
-type StandardKeywordType = keyof typeof standardKeywordToUrlMapping;
+type StandardKeywordType = keyof typeof standardKeywordToUriMapping;
 
-class CustomCodeLens extends vscode.CodeLens {
-  public matchingStandardKeyword: StandardKeywordType;
+class MatchingKeywordCodeLens extends vscode.CodeLens {
+  public matchingKeyword: StandardKeywordType;
 
   constructor(
-    matchingStandardKeyword: StandardKeywordType,
+    matchingKeyword: StandardKeywordType,
     range: vscode.Range,
     command?: vscode.Command
   ) {
     super(range, command);
-    this.matchingStandardKeyword = matchingStandardKeyword;
+    this.matchingKeyword = matchingKeyword;
   }
 }
 
@@ -29,18 +29,19 @@ class CustomCodeLens extends vscode.CodeLens {
  * CodelensProvider
  */
 export class CodelensProvider
-  implements vscode.CodeLensProvider<CustomCodeLens>
+  implements vscode.CodeLensProvider<MatchingKeywordCodeLens>
 {
-  private codeLenses: CustomCodeLens[] = [];
+  private codeLenses: MatchingKeywordCodeLens[] = [];
   private regex: RegExp;
   private globalState: vscode.Memento;
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
+
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
   constructor(globalState: vscode.Memento) {
-    this.regex = buildRegex();
+    this.regex = buildKeywordMatchingRegex();
     this.globalState = globalState;
 
     vscode.workspace.onDidChangeConfiguration((_) => {
@@ -51,7 +52,7 @@ export class CodelensProvider
   public provideCodeLenses(
     document: vscode.TextDocument,
     _: vscode.CancellationToken
-  ): CustomCodeLens[] | Thenable<CustomCodeLens[]> {
+  ): MatchingKeywordCodeLens[] | Thenable<MatchingKeywordCodeLens[]> {
     if (
       vscode.workspace
         .getConfiguration("standard-jit")
@@ -60,30 +61,39 @@ export class CodelensProvider
       this.codeLenses = [];
       const regex = new RegExp(this.regex);
       const text = document.getText();
-      const urlsToHide =
+      const urisToHide =
         this.globalState.get<string[]>(standardUrisToHideKey) || [];
 
       let matches;
 
       while ((matches = regex.exec(text)) !== null) {
-        const line = document.lineAt(document.positionAt(matches.index).line);
-        const matchedKeyword =
-          matches[0] as StandardKeywordType;
+        const matchedLine = document.lineAt(
+          document.positionAt(matches.index).line
+        );
+        const matchedKeyword = matches[0] as StandardKeywordType;
 
-        const indexOf = line.text.indexOf(matchedKeyword);
-        const position = new vscode.Position(line.lineNumber, indexOf);
-        const range = document.getWordRangeAtPosition(
-          position,
+        const matchedKeywordIndex = matchedLine.text.indexOf(matchedKeyword);
+        const matchedKeywordPosition = new vscode.Position(
+          matchedLine.lineNumber,
+          matchedKeywordIndex
+        );
+        const matchedKeywordRange = document.getWordRangeAtPosition(
+          matchedKeywordPosition,
           new RegExp(this.regex)
         );
 
         const areAllStandardsAssociatedWithKeywordHidden =
-          standardKeywordToUrlMapping[matchedKeyword].every((url) => {
-            return urlsToHide.includes(url);
+          standardKeywordToUriMapping[matchedKeyword].every((uri) => {
+            return urisToHide.includes(uri);
           });
 
-        if (range && !areAllStandardsAssociatedWithKeywordHidden) {
-          this.codeLenses.push(new CustomCodeLens(matchedKeyword, range));
+        if (
+          matchedKeywordRange &&
+          !areAllStandardsAssociatedWithKeywordHidden
+        ) {
+          this.codeLenses.push(
+            new MatchingKeywordCodeLens(matchedKeyword, matchedKeywordRange)
+          );
         }
       }
 
@@ -94,7 +104,7 @@ export class CodelensProvider
   }
 
   public resolveCodeLens(
-    codeLens: CustomCodeLens,
+    codeLens: MatchingKeywordCodeLens,
     _: vscode.CancellationToken
   ) {
     if (
@@ -107,8 +117,8 @@ export class CodelensProvider
         tooltip: "",
         command: "standard-jit.codelensAction",
         arguments: [
-          codeLens.matchingStandardKeyword,
-          standardKeywordToUrlMapping[codeLens.matchingStandardKeyword],
+          codeLens.matchingKeyword,
+          standardKeywordToUriMapping[codeLens.matchingKeyword],
         ],
       };
       return codeLens;
