@@ -5,7 +5,7 @@
   "repository": "https://github.com/theodo/standard-jit",
   "publisher": "AleBlondin",
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.62.0"
   },
