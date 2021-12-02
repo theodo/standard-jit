@@ -1,8 +1,13 @@
 import * as vscode from "vscode";
-import standardKeywordToUriMapping from "./standardMapping.json";
+import defaultStandardKeywordToUriMapping from "./standardMapping.json";
 import { standardUrisToHideKey } from "./standardsToHide";
 
-const buildKeywordMatchingRegex = () => {
+const remoteStandardUri =
+  "https://raw.githubusercontent.com/theodo/standard-jit-db/master/src/standardMapping.json";
+
+const buildKeywordMatchingRegex = (
+  standardKeywordToUriMapping: StandardMappingType
+) => {
   const regex = new RegExp(
     Object.keys(standardKeywordToUriMapping).join("|"),
     "g"
@@ -10,7 +15,8 @@ const buildKeywordMatchingRegex = () => {
 
   return regex;
 };
-type StandardKeywordType = keyof typeof standardKeywordToUriMapping;
+type StandardKeywordType = keyof typeof defaultStandardKeywordToUriMapping;
+type StandardMappingType = Record<StandardKeywordType, string[]>;
 
 class MatchingKeywordCodeLens extends vscode.CodeLens {
   public matchingKeyword: StandardKeywordType;
@@ -36,17 +42,26 @@ export class CodelensProvider
   private globalState: vscode.Memento;
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
+  private standardKeywordToUriMapping: StandardMappingType;
 
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
   constructor(globalState: vscode.Memento) {
-    this.regex = buildKeywordMatchingRegex();
+    this.standardKeywordToUriMapping = defaultStandardKeywordToUriMapping;
+    this.regex = buildKeywordMatchingRegex(defaultStandardKeywordToUriMapping);
     this.globalState = globalState;
 
     vscode.workspace.onDidChangeConfiguration((_) => {
       this._onDidChangeCodeLenses.fire();
     });
+
+    fetch(remoteStandardUri)
+      .then((response) => response.json())
+      .then((data) => {
+        this.regex = buildKeywordMatchingRegex(data);
+        this.standardKeywordToUriMapping = data;
+      });
   }
 
   public provideCodeLenses(
@@ -83,7 +98,7 @@ export class CodelensProvider
         );
 
         const areAllStandardsAssociatedWithKeywordHidden =
-          standardKeywordToUriMapping[matchedKeyword].every((uri) => {
+          this.standardKeywordToUriMapping[matchedKeyword].every((uri) => {
             return urisToHide.includes(uri);
           });
 
@@ -118,7 +133,7 @@ export class CodelensProvider
         command: "standard-jit.codelensAction",
         arguments: [
           codeLens.matchingKeyword,
-          standardKeywordToUriMapping[codeLens.matchingKeyword],
+          this.standardKeywordToUriMapping[codeLens.matchingKeyword],
         ],
       };
       return codeLens;
