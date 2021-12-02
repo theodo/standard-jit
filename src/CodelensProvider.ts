@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import axios from "axios";
 import defaultStandardKeywordToUriMapping from "./standardMapping.json";
 import { standardUrisToHideKey } from "./standardsToHide";
 
@@ -56,9 +57,10 @@ export class CodelensProvider
       this._onDidChangeCodeLenses.fire();
     });
 
-    fetch(remoteStandardUri)
-      .then((response) => response.json())
-      .then((data) => {
+    axios
+      .get(remoteStandardUri)
+      // @ts-ignore
+      .then(({ data }: any) => {
         this.regex = buildKeywordMatchingRegex(data);
         this.standardKeywordToUriMapping = data;
       });
