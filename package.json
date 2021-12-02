@@ -14,6 +14,7 @@
     "vscode": "^1.62.0"
   },
   "activationEvents": [
+    "onStartupFinished",
     "onCommand:standard-jit.enableCodeLens"
   ],
   "main": "./dist/extension.js",
