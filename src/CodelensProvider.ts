@@ -10,7 +10,9 @@ const buildKeywordMatchingRegex = (
   standardKeywordToUriMapping: StandardMappingType
 ) => {
   const regex = new RegExp(
-    Object.keys(standardKeywordToUriMapping).join("|"),
+    Object.keys(standardKeywordToUriMapping)
+      .map((keyword) => keyword.replace(/(?=[() \\])/g, "\\"))
+      .join("|"),
     "g"
   );
 
