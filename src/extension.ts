@@ -11,7 +11,7 @@ import {
   Uri,
   QuickPickItem,
 } from "vscode";
-import { CodelensProvider } from "./CodelensProvider";
+import { CodelensProvider, StandardUrlType } from "./CodelensProvider";
 import { hideStandard, standardUrisToHideKey } from "./standardsToHide";
 
 // this method is called when your extension is activated
@@ -25,14 +25,18 @@ interface RedirectionQuickPickItem extends QuickPickItem {
   type: QuickPickItemType;
 }
 
-const formatLinkLabel = (matchedText: string, url: string) => {
+const formatLinkLabel = (
+  matchedText: string,
+  { url, domain }: StandardUrlType
+) => {
   try {
-    return `${matchedText} -> ${url
+    return `[${domain}] ${matchedText} -> ${url
       .split("/m33/")[1]
       .split("-")
       .slice(undefined, -1)
       .join("-")}`;
   } catch (e) {
+    console.error({ e });
     return url;
   }
 };
@@ -67,22 +71,24 @@ export function activate(context: ExtensionContext) {
 
   commands.registerCommand(
     "standard-jit.codelensAction",
-    (matchedText: string, uris: string[]) => {
+    (matchedText: string, matchedRessources: StandardUrlType[]) => {
       const quickPick = window.createQuickPick<RedirectionQuickPickItem>();
       quickPick.canSelectMany = false;
 
       const urisToHide =
         context.globalState.get<string[]>(standardUrisToHideKey) || [];
-      const urisToDisplay = uris.filter((url) => !urisToHide.includes(url));
+      const ressourcesToDisplay = matchedRessources.filter(
+        ({ url }) => !urisToHide.includes(url)
+      );
 
-      const linkQuickPickItems = urisToDisplay.map((url: string) => ({
-        label: formatLinkLabel(matchedText, url),
-        url: url,
+      const linkQuickPickItems = ressourcesToDisplay.map((ressource) => ({
+        label: formatLinkLabel(matchedText, ressource),
+        url: ressource.url,
         type: "link" as QuickPickItemType,
       }));
-      const hideQuickPickItems = urisToDisplay.map((url) => ({
-        label: `Hide this standard: ${formatLinkLabel(matchedText, url)}`,
-        url: url,
+      const hideQuickPickItems = ressourcesToDisplay.map((ressource) => ({
+        label: `Hide this standard: ${formatLinkLabel(matchedText, ressource)}`,
+        url: ressource.url,
         type: "hide" as QuickPickItemType,
       }));
 

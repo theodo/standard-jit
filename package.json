@@ -40,7 +40,23 @@
       "properties": {
         "standard-jit.enableCodeLens": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Activate extension"
+        },
+        "standard-jit.standardsToInclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "theodo",
+              "bpi"
+            ]
+          },
+          "default": [
+            "theodo"
+          ],
+          "uniqueItems": true,
+          "description": "Select which standards to show. Please note that you will need the appropriate Notion accesses."
         }
       }
     }
