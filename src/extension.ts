@@ -11,6 +11,13 @@ import {
   Uri,
   QuickPickItem,
 } from "vscode";
+import {
+  notifyErrored,
+  notifyExtensionStarted,
+  notifyStandardClicked,
+  notifyStandardHidden,
+  notifyStandardsUnhidden,
+} from "./analytics";
 import { CodelensProvider, StandardUrlType } from "./CodelensProvider";
 import { hideStandard, standardUrisToHideKey } from "./standardsToHide";
 
@@ -35,13 +42,24 @@ const formatLinkLabel = (
       .split("-")
       .slice(undefined, -1)
       .join("-")}`;
-  } catch (e) {
+  } catch (e: any) {
     console.error({ e });
+    notifyErrored({
+      context: JSON.stringify({
+        message: e?.message,
+        url,
+        matchedText,
+        domain,
+      }),
+    });
+
     return url;
   }
 };
 
 export function activate(context: ExtensionContext) {
+  notifyExtensionStarted();
+
   const codelensProvider = new CodelensProvider(context.globalState);
 
   languages.registerCodeLensProvider("*", codelensProvider);
@@ -66,6 +84,8 @@ export function activate(context: ExtensionContext) {
   );
 
   commands.registerCommand("standard-jit.unhideStandards", () => {
+    notifyStandardsUnhidden();
+
     context.globalState.update(standardUrisToHideKey, undefined);
   });
 
@@ -98,9 +118,11 @@ export function activate(context: ExtensionContext) {
         const { type, url } = selection[0];
 
         if (type === "link") {
+          notifyStandardClicked({ url });
           env.openExternal(Uri.parse(url));
         }
         if (type === "hide") {
+          notifyStandardHidden({ url });
           commands.executeCommand("standard-jit.hideStandard", url);
         }
 

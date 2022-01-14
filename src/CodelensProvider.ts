@@ -3,6 +3,7 @@ import axios from "axios";
 import { isArray, mergeWith } from "lodash";
 import { standardUrisToHideKey } from "./standardsToHide";
 import { DBType, getRemoteStandardUri } from "./remoteStandards";
+import { notifyErrored } from "./analytics";
 
 export type StandardKeywordType = string;
 export type StandardUrlType = { url: string; domain: string };
@@ -85,8 +86,12 @@ export class CodelensProvider
             this.standardKeywordToUriMapping
           );
         })
-        .catch((error) => {
-          console.error(error);
+        .catch((err) => {
+          notifyErrored({
+            context: JSON.stringify({ dbName, message: err?.message }),
+          });
+
+          console.error(err);
         });
     });
   }
@@ -114,30 +119,40 @@ export class CodelensProvider
         );
         const matchedKeyword = matches[0] as StandardKeywordType;
 
-        const matchedKeywordIndex = matchedLine.text.indexOf(matchedKeyword);
+        try {
+          const matchedKeywordIndex = matchedLine.text.indexOf(matchedKeyword);
 
-        const matchedKeywordPosition = new vscode.Position(
-          matchedLine.lineNumber,
-          matchedKeywordIndex
-        );
+          const matchedKeywordPosition = new vscode.Position(
+            matchedLine.lineNumber,
+            matchedKeywordIndex
+          );
 
-        const matchedKeywordRange = document.getWordRangeAtPosition(
-          matchedKeywordPosition,
-          new RegExp(this.regex)
-        );
+          const matchedKeywordRange = document.getWordRangeAtPosition(
+            matchedKeywordPosition,
+            new RegExp(this.regex)
+          );
 
-        const areAllStandardsAssociatedWithKeywordHidden =
-          this.standardKeywordToUriMapping[matchedKeyword].every(({ url }) => {
-            return urisToHide.includes(url);
+          const areAllStandardsAssociatedWithKeywordHidden =
+            this.standardKeywordToUriMapping[matchedKeyword].every(
+              ({ url }) => {
+                return urisToHide.includes(url);
+              }
+            );
+
+          if (
+            matchedKeywordRange &&
+            !areAllStandardsAssociatedWithKeywordHidden
+          ) {
+            this.codeLenses.push(
+              new MatchingKeywordCodeLens(matchedKeyword, matchedKeywordRange)
+            );
+          }
+        } catch (err: any) {
+          notifyErrored({
+            context: JSON.stringify({ message: err?.message, matchedKeyword }),
           });
 
-        if (
-          matchedKeywordRange &&
-          !areAllStandardsAssociatedWithKeywordHidden
-        ) {
-          this.codeLenses.push(
-            new MatchingKeywordCodeLens(matchedKeyword, matchedKeywordRange)
-          );
+          console.error(err);
         }
       }
 
