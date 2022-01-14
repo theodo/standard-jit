@@ -26,6 +26,7 @@ If you want to temporarly enable/disable the extension:
 This extension contributes the following settings:
 
 - `standard-jit.enableCodeLens`: enable/disable this extension
+- `standard-jit.standardsToInclude`	Select which standards to show. Please note that you will need the appropriate Notion accesses. Default value is `[theodo]`
 
 ## Using the extension
 
@@ -37,7 +38,9 @@ Commands (via View > Command Palette):
 
 ## Standard mapping
 
-To see which standards are currently linked with which keyword, see this [reference file](https://github.com/theodo/standard-jit/blob/master/src/standardMapping.json)
+To see which standards are currently linked with which keyword, see this [github repo](https://github.com/theodo/standard-jit-db).
+
+For example, to check the `theodo` mapping, go to the appropriate [folder](https://github.com/theodo/standard-jit-db/blob/master/src/theodo/standardMapping.json)
 
 ---
 
