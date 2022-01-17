@@ -10,7 +10,7 @@ const ACTIONS = {
 type ActionType = typeof ACTIONS[keyof typeof ACTIONS];
 
 const airtableEndpoint =
-  "https://hooks.airtable.com/workflows/v1/genericWebhook/appkWGJIoURg2P6we/wflXIH4C03Sln3sGt/wtreURbg1dFzUfIrk";
+  "https://hooks.zapier.com/hooks/catch/3687637/b9k1k49";
 
 const postAnalytics = async ({
   url,
