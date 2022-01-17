@@ -21,7 +21,6 @@ const postAnalytics = async ({
   action: ActionType;
   context?: string;
 }) => {
-  console.log("context", context);
   await axios
     .post(airtableEndpoint, { redirect: url, action, context })
     .catch((error) => {

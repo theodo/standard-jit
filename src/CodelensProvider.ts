@@ -17,7 +17,7 @@ const buildKeywordMatchingRegex = (
 ) => {
   const regex = new RegExp(
     Object.keys(standardKeywordToUriMapping)
-      .map((keyword) => keyword.replace(/(?=[() \\])/g, "\\"))
+      .map((keyword) => keyword.replace(/(?=[(). \\])/g, "\\"))
       .join("|"),
     "g"
   );
