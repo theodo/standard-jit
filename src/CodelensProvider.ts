@@ -106,6 +106,12 @@ export class CodelensProvider
         .get("enableCodeLens", true)
     ) {
       this.codeLenses = [];
+
+      const emptyRegex = new RegExp("", "g");
+      if (String(this.regex) === String(emptyRegex)) {
+        return [];
+      }
+
       const regex = new RegExp(this.regex);
       const text = document.getText();
       const urisToHide =
