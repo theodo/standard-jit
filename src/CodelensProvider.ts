@@ -88,7 +88,7 @@ export class CodelensProvider
         })
         .catch((err) => {
           notifyErrored({
-            context: JSON.stringify({ dbName, message: err?.message }),
+            context: JSON.stringify({ dbName, context: err?.message }),
           });
 
           console.error(err);
