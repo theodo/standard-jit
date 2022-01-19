@@ -10,7 +10,7 @@ const ACTIONS = {
 type ActionType = typeof ACTIONS[keyof typeof ACTIONS];
 
 const airtableEndpoint =
-  "https://hooks.zapier.com/hooks/catch/3687637/b9k1k49";
+  "https://gallant-wozniak-0ccf17.netlify.app/.netlify/functions/addrow";
 
 const postAnalytics = async ({
   url,
