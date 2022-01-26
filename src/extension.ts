@@ -36,25 +36,29 @@ const formatLinkLabel = (
   matchedText: string,
   { url, domain }: StandardUrlType
 ) => {
-  try {
-    return `[${domain}] ${matchedText} -> ${url
-      .split("/m33/")[1]
-      .split("-")
-      .slice(undefined, -1)
-      .join("-")}`;
-  } catch (e: any) {
-    console.error({ e });
-    notifyErrored({
-      context: JSON.stringify({
-        message: e?.message,
-        url,
-        matchedText,
-        domain,
-      }),
-    });
+  let formattedUrl = url;
 
-    return url;
+  if (url.includes("/m33/")) {
+    try {
+      formattedUrl = `${url
+        .split("/m33/")[1]
+        .split("-")
+        .slice(undefined, -1)
+        .join("-")}`;
+    } catch (e: any) {
+      console.error({ e });
+      notifyErrored({
+        context: JSON.stringify({
+          message: e?.message,
+          url,
+          matchedText,
+          domain,
+        }),
+      });
+    }
   }
+
+  return `[${domain}] ${matchedText} -> ${formattedUrl}`;
 };
 
 export function activate(context: ExtensionContext) {
