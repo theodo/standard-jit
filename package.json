@@ -49,7 +49,9 @@
             "type": "string",
             "enum": [
               "theodo",
-              "bpi"
+              "bpi",
+              "biogen",
+              "sipios"
             ]
           },
           "default": [
