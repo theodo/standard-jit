@@ -1,6 +1,6 @@
 {
   "name": "standard-jit",
-  "displayName": "standard-jit",
+  "displayName": "Standard Just-In-Time (standard-jit)",
   "description": "Show standards associated with written code",
   "icon": "icon.png",
   "repository": {
@@ -9,10 +9,11 @@
   },
   "publisher": "AleBlondin",
   "license": "MIT",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "engines": {
     "vscode": "^1.62.0"
   },
+  "keywords": ["theodo", "standard", "jit"],
   "activationEvents": [
     "onStartupFinished",
     "onCommand:standard-jit.enableCodeLens"
