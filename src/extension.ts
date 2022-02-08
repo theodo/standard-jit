@@ -32,19 +32,22 @@ interface RedirectionQuickPickItem extends QuickPickItem {
   type: QuickPickItemType;
 }
 
+const notionPageIdentifier = "notion.so/";
+const isNotionPage = (url: string) => url.includes(notionPageIdentifier);
+
 const formatLinkLabel = (
   matchedText: string,
   { url, domain }: StandardUrlType
 ) => {
   let formattedUrl = url;
 
-  if (url.includes("/m33/")) {
+  if (isNotionPage(url)) {
     try {
       formattedUrl = `${url
-        .split("/m33/")[1]
+        .split(notionPageIdentifier)[1]
         .split("-")
         .slice(undefined, -1)
-        .join("-")}`;
+        .join(" ")}`;
     } catch (e: any) {
       console.error({ e });
       notifyErrored({
