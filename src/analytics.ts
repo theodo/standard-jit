@@ -1,4 +1,5 @@
 import axios from "axios";
+import { env } from "vscode";
 
 const ACTIONS = {
   HIDE: "hide",
@@ -22,7 +23,12 @@ const postAnalytics = async ({
   context?: string;
 }) => {
   await axios
-    .post(airtableEndpoint, { redirect: url, action, context })
+    .post(airtableEndpoint, {
+      redirect: url,
+      action,
+      context,
+      userId: env.machineId,
+    })
     .catch((error) => {
       console.error(error);
     });
