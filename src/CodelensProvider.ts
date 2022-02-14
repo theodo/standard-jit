@@ -25,6 +25,27 @@ const buildKeywordMatchingRegex = (
   return regex;
 };
 
+const getRangeAssociatedWithMatchedKeywordIndex = ({
+  document,
+  matchedKeywordIndex,
+}: {
+  document: vscode.TextDocument;
+  matchedKeywordIndex: number;
+}): vscode.Range | undefined => {
+  const { lineNumber } = document.lineAt(
+    document.positionAt(matchedKeywordIndex).line
+  );
+
+  const matchedKeywordPosition = new vscode.Position(lineNumber, 0);
+
+  const matchedKeywordRange = new vscode.Range(
+    matchedKeywordPosition,
+    matchedKeywordPosition
+  );
+
+  return matchedKeywordRange;
+};
+
 class MatchingKeywordCodeLens extends vscode.CodeLens {
   public matchingKeyword: StandardKeywordType;
 
@@ -38,9 +59,6 @@ class MatchingKeywordCodeLens extends vscode.CodeLens {
   }
 }
 
-/**
- * CodelensProvider
- */
 export class CodelensProvider
   implements vscode.CodeLensProvider<MatchingKeywordCodeLens>
 {
@@ -120,22 +138,11 @@ export class CodelensProvider
       let matches;
 
       while ((matches = regex.exec(text)) !== null) {
-        const matchedLine = document.lineAt(
-          document.positionAt(matches.index).line
-        );
-        const matchedKeyword = matches[0] as StandardKeywordType;
+        const { 0: matchedKeyword, index } = matches;
 
         try {
-          const matchedKeywordIndex = matchedLine.text.indexOf(matchedKeyword);
-
-          const matchedKeywordPosition = new vscode.Position(
-            matchedLine.lineNumber,
-            matchedKeywordIndex
-          );
-
-          const matchedKeywordRange = document.getWordRangeAtPosition(
-            matchedKeywordPosition,
-            new RegExp(this.regex)
+          const matchedKeywordRange = getRangeAssociatedWithMatchedKeywordIndex(
+            { document, matchedKeywordIndex: index }
           );
 
           const areAllStandardsAssociatedWithKeywordHidden =
