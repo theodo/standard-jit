@@ -8,7 +8,7 @@ import {
   notifyStandardsUnhidden,
 } from "./analytics";
 import { CodelensProvider } from "./CodelensProvider";
-import { StandardUrlType } from "./CodelensProvider.utils";
+import { DomainScopedUrl } from "./CodelensProvider.utils";
 import { hideStandard, standardUrisToHideKey } from "./standardsToHide";
 
 // this method is called when your extension is activated
@@ -31,7 +31,7 @@ const isNotionPage = (url: string) => url.includes(notionPageIdentifier);
  */
 const formatLinkLabel = (
   matchedText: string,
-  { url, domain }: StandardUrlType
+  { url, domain }: DomainScopedUrl
 ) => {
   let formattedUrl = url;
 
@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
    */
    vscode.commands.registerCommand(
     "standard-jit.codelensAction",
-    (matchedText: string, matchedRessources: StandardUrlType[]) => {
+    (matchedText: string, matchedRessources: DomainScopedUrl[]) => {
       const quickPick = vscode.window.createQuickPick<RedirectionQuickPickItem>();
       quickPick.canSelectMany = false;
 

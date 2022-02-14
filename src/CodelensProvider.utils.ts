@@ -3,15 +3,15 @@ import * as vscode from "vscode";
 
 import { DBType } from "./remoteStandards";
 
-export type StandardKeywordType = string;
-export type StandardUrlType = { url: string; domain: string };
-export type StandardMappingType = Record<
-  StandardKeywordType,
-  StandardUrlType[]
+export type KeywordType = string;
+export type DomainScopedUrl = { url: string; domain: string };
+export type KeywordToDomainScopedUrlMappingType = Record<
+  KeywordType,
+  DomainScopedUrl[]
 >;
 
 export const buildKeywordMatchingRegex = (
-  standardKeywordToUriMapping: StandardMappingType
+  standardKeywordToUriMapping: KeywordToDomainScopedUrlMappingType
 ) => {
   const regex = new RegExp(
     Object.keys(standardKeywordToUriMapping)
@@ -61,14 +61,14 @@ export const mergeStandardMappings = ({
   additionalMapping,
   additionalMappingDomain,
 }: {
-  sourceMapping: StandardMappingType;
-  additionalMapping: StandardMappingType;
+  sourceMapping: KeywordToDomainScopedUrlMappingType;
+  additionalMapping: KeywordToDomainScopedUrlMappingType;
   additionalMappingDomain: string;
 }) => {
   return mergeWith(
     sourceMapping,
     additionalMapping,
-    (objValue: StandardUrlType[], srcValue: string[]) => {
+    (objValue: DomainScopedUrl[], srcValue: string[]) => {
       return [
         ...(isArray(objValue) ? objValue : []),
         ...srcValue.map((url: string) => ({
@@ -81,10 +81,10 @@ export const mergeStandardMappings = ({
 };
 
 export class StandardCodeLens extends vscode.CodeLens {
-  public matchingKeyword: StandardKeywordType;
+  public matchingKeyword: KeywordType;
 
   constructor(
-    matchingKeyword: StandardKeywordType,
+    matchingKeyword: KeywordType,
     range: vscode.Range,
     command?: vscode.Command
   ) {

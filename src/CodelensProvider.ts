@@ -11,7 +11,7 @@ import {
   isExtensionEnabled,
   mergeStandardMappings,
   StandardCodeLens,
-  StandardMappingType,
+  KeywordToDomainScopedUrlMappingType,
 } from "./CodelensProvider.utils";
 
 export class CodelensProvider
@@ -22,7 +22,7 @@ export class CodelensProvider
   private globalState: vscode.Memento;
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
-  private standardKeywordToUriMapping: StandardMappingType;
+  private standardKeywordToUriMapping: KeywordToDomainScopedUrlMappingType;
 
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
@@ -47,7 +47,7 @@ export class CodelensProvider
     domains.map((domain) => {
       axios
         .get(getRemoteStandardUri(domain))
-        .then(({ data }: { data: StandardMappingType }) => {
+        .then(({ data }: { data: KeywordToDomainScopedUrlMappingType }) => {
           this.standardKeywordToUriMapping = mergeStandardMappings({
             sourceMapping: this.standardKeywordToUriMapping,
             additionalMapping: data,
