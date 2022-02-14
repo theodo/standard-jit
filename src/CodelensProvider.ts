@@ -1,100 +1,18 @@
 import * as vscode from "vscode";
 import axios from "axios";
-import { isArray, mergeWith } from "lodash";
+
 import { standardUrisToHideKey } from "./standardsToHide";
-import { DBType, getRemoteStandardUri } from "./remoteStandards";
+import { getRemoteStandardUri } from "./remoteStandards";
 import { notifyErrored } from "./analytics";
-
-export type StandardKeywordType = string;
-export type StandardUrlType = { url: string; domain: string };
-export type StandardMappingType = Record<
-  StandardKeywordType,
-  StandardUrlType[]
->;
-
-const buildKeywordMatchingRegex = (
-  standardKeywordToUriMapping: StandardMappingType
-) => {
-  const regex = new RegExp(
-    Object.keys(standardKeywordToUriMapping)
-      .map((keyword) => keyword.replace(/(?=[(). \\])/g, "\\"))
-      .join("|"),
-    "g"
-  );
-
-  return regex;
-};
-
-const getRangeAssociatedWithMatchedKeywordIndex = ({
-  document,
-  matchedKeywordIndex,
-}: {
-  document: vscode.TextDocument;
-  matchedKeywordIndex: number;
-}): vscode.Range | undefined => {
-  const { lineNumber } = document.lineAt(
-    document.positionAt(matchedKeywordIndex).line
-  );
-
-  const matchedKeywordPosition = new vscode.Position(lineNumber, 0);
-
-  const matchedKeywordRange = new vscode.Range(
-    matchedKeywordPosition,
-    matchedKeywordPosition
-  );
-
-  return matchedKeywordRange;
-};
-
-const isExtensionEnabled = () => {
-  return vscode.workspace
-    .getConfiguration("standard-jit")
-    .get("enableCodeLens", true);
-};
-
-const getDomainsToFetch = () => {
-  return vscode.workspace
-    .getConfiguration("standard-jit")
-    .get("standardsToInclude") as DBType[];
-};
-
-const mergeStandardMappings = ({
-  sourceMapping,
-  additionalMapping,
-  additionalMappingDomain,
-}: {
-  sourceMapping: StandardMappingType;
-  additionalMapping: StandardMappingType;
-  additionalMappingDomain: string;
-}) => {
-  return mergeWith(
-    sourceMapping,
-    additionalMapping,
-    (objValue: StandardUrlType[], srcValue: string[]) => {
-      return [
-        ...(isArray(objValue) ? objValue : []),
-        ...srcValue.map((url: string) => ({
-          domain: additionalMappingDomain,
-          url,
-        })),
-      ];
-    }
-  );
-};
-
-class StandardCodeLens extends vscode.CodeLens {
-  public matchingKeyword: StandardKeywordType;
-
-  constructor(
-    matchingKeyword: StandardKeywordType,
-    range: vscode.Range,
-    command?: vscode.Command
-  ) {
-    super(range, command);
-
-    this.matchingKeyword = matchingKeyword;
-  }
-}
+import {
+  buildKeywordMatchingRegex,
+  getDomainsToFetch,
+  getRangeAssociatedWithMatchedKeywordIndex,
+  isExtensionEnabled,
+  mergeStandardMappings,
+  StandardCodeLens,
+  StandardMappingType,
+} from "./CodelensProvider.utils";
 
 export class CodelensProvider
   implements vscode.CodeLensProvider<StandardCodeLens>

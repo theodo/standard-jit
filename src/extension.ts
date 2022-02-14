@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+
 import {
   notifyErrored,
   notifyExtensionStarted,
@@ -6,7 +7,8 @@ import {
   notifyStandardHidden,
   notifyStandardsUnhidden,
 } from "./analytics";
-import { CodelensProvider, StandardUrlType } from "./CodelensProvider";
+import { CodelensProvider } from "./CodelensProvider";
+import { StandardUrlType } from "./CodelensProvider.utils";
 import { hideStandard, standardUrisToHideKey } from "./standardsToHide";
 
 // this method is called when your extension is activated
