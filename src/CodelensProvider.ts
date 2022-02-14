@@ -46,6 +46,12 @@ const getRangeAssociatedWithMatchedKeywordIndex = ({
   return matchedKeywordRange;
 };
 
+const isExtensionEnabled = () => {
+  return vscode.workspace
+    .getConfiguration("standard-jit")
+    .get("enableCodeLens", true);
+};
+
 class MatchingKeywordCodeLens extends vscode.CodeLens {
   public matchingKeyword: StandardKeywordType;
 
@@ -114,19 +120,20 @@ export class CodelensProvider
     });
   }
 
+  private isKeywordRegexInitialized() {
+    const emptyRegex = new RegExp("", "g");
+
+    return String(this.regex) !== String(emptyRegex);
+  }
+
   public provideCodeLenses(
     document: vscode.TextDocument,
     _: vscode.CancellationToken
   ): MatchingKeywordCodeLens[] | Thenable<MatchingKeywordCodeLens[]> {
-    if (
-      vscode.workspace
-        .getConfiguration("standard-jit")
-        .get("enableCodeLens", true)
-    ) {
+    if (isExtensionEnabled()) {
       this.codeLenses = [];
 
-      const emptyRegex = new RegExp("", "g");
-      if (String(this.regex) === String(emptyRegex)) {
+      if (!this.isKeywordRegexInitialized()) {
         return [];
       }
 
