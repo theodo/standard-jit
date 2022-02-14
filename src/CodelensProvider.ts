@@ -52,7 +52,37 @@ const isExtensionEnabled = () => {
     .get("enableCodeLens", true);
 };
 
-class MatchingKeywordCodeLens extends vscode.CodeLens {
+const getDomainsToFetch = () => {
+  return vscode.workspace
+    .getConfiguration("standard-jit")
+    .get("standardsToInclude") as DBType[];
+};
+
+const mergeStandardMappings = ({
+  sourceMapping,
+  additionalMapping,
+  additionalMappingDomain,
+}: {
+  sourceMapping: StandardMappingType;
+  additionalMapping: StandardMappingType;
+  additionalMappingDomain: string;
+}) => {
+  return mergeWith(
+    sourceMapping,
+    additionalMapping,
+    (objValue: StandardUrlType[], srcValue: string[]) => {
+      return [
+        ...(isArray(objValue) ? objValue : []),
+        ...srcValue.map((url: string) => ({
+          domain: additionalMappingDomain,
+          url,
+        })),
+      ];
+    }
+  );
+};
+
+class StandardCodeLens extends vscode.CodeLens {
   public matchingKeyword: StandardKeywordType;
 
   constructor(
@@ -61,14 +91,15 @@ class MatchingKeywordCodeLens extends vscode.CodeLens {
     command?: vscode.Command
   ) {
     super(range, command);
+
     this.matchingKeyword = matchingKeyword;
   }
 }
 
 export class CodelensProvider
-  implements vscode.CodeLensProvider<MatchingKeywordCodeLens>
+  implements vscode.CodeLensProvider<StandardCodeLens>
 {
-  private codeLenses: MatchingKeywordCodeLens[] = [];
+  private codeLenses: StandardCodeLens[] = [];
   private regex: RegExp;
   private globalState: vscode.Memento;
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
@@ -87,24 +118,23 @@ export class CodelensProvider
       this._onDidChangeCodeLenses.fire();
     });
 
-    const dbsToFetch = vscode.workspace
-      .getConfiguration("standard-jit")
-      .get("standardsToInclude") as DBType[];
+    const domains = getDomainsToFetch();
 
-    dbsToFetch.map((dbName) => {
+    this.buildStandardMappingFromDomains({
+      domains,
+    });
+  }
+
+  private buildStandardMappingFromDomains({ domains }: { domains: string[] }) {
+    domains.map((domain) => {
       axios
-        .get(getRemoteStandardUri(dbName))
+        .get(getRemoteStandardUri(domain))
         .then(({ data }: { data: StandardMappingType }) => {
-          this.standardKeywordToUriMapping = mergeWith(
-            this.standardKeywordToUriMapping,
-            data,
-            (objValue: StandardUrlType[], srcValue: string[]) => {
-              return [
-                ...(isArray(objValue) ? objValue : []),
-                ...srcValue.map((url: string) => ({ domain: dbName, url })),
-              ];
-            }
-          );
+          this.standardKeywordToUriMapping = mergeStandardMappings({
+            sourceMapping: this.standardKeywordToUriMapping,
+            additionalMapping: data,
+            additionalMappingDomain: domain,
+          });
 
           this.regex = buildKeywordMatchingRegex(
             this.standardKeywordToUriMapping
@@ -112,7 +142,7 @@ export class CodelensProvider
         })
         .catch((err) => {
           notifyErrored({
-            context: JSON.stringify({ dbName, context: err?.message }),
+            context: JSON.stringify({ domain, context: err?.message }),
           });
 
           console.error(err);
@@ -129,7 +159,7 @@ export class CodelensProvider
   public provideCodeLenses(
     document: vscode.TextDocument,
     _: vscode.CancellationToken
-  ): MatchingKeywordCodeLens[] | Thenable<MatchingKeywordCodeLens[]> {
+  ): StandardCodeLens[] | Thenable<StandardCodeLens[]> {
     if (isExtensionEnabled()) {
       this.codeLenses = [];
 
@@ -164,7 +194,7 @@ export class CodelensProvider
             !areAllStandardsAssociatedWithKeywordHidden
           ) {
             this.codeLenses.push(
-              new MatchingKeywordCodeLens(matchedKeyword, matchedKeywordRange)
+              new StandardCodeLens(matchedKeyword, matchedKeywordRange)
             );
           }
         } catch (err: any) {
@@ -183,7 +213,7 @@ export class CodelensProvider
   }
 
   public resolveCodeLens(
-    codeLens: MatchingKeywordCodeLens,
+    codeLens: StandardCodeLens,
     _: vscode.CancellationToken
   ) {
     if (
