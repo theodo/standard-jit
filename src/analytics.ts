@@ -1,5 +1,5 @@
 import axios from "axios";
-import { env } from "vscode";
+import * as vscode from "vscode";
 
 const ACTIONS = {
   HIDE: "hide",
@@ -27,7 +27,7 @@ const postAnalytics = async ({
       redirect: url,
       action,
       context,
-      userId: env.machineId,
+      userId: vscode.env.machineId,
     })
     .catch((error) => {
       console.error(error);

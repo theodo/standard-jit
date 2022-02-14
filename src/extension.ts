@@ -1,16 +1,4 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import {
-  ExtensionContext,
-  languages,
-  commands,
-  Disposable,
-  workspace,
-  window,
-  env,
-  Uri,
-  QuickPickItem,
-} from "vscode";
+import * as vscode from "vscode";
 import {
   notifyErrored,
   notifyExtensionStarted,
@@ -24,10 +12,10 @@ import { hideStandard, standardUrisToHideKey } from "./standardsToHide";
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
-let disposables: Disposable[] = [];
+let disposables: vscode.Disposable[] = [];
 
 type QuickPickItemType = "link" | "hide";
-interface RedirectionQuickPickItem extends QuickPickItem {
+interface RedirectionQuickPickItem extends vscode.QuickPickItem {
   url: string;
   type: QuickPickItemType;
 }
@@ -35,6 +23,10 @@ interface RedirectionQuickPickItem extends QuickPickItem {
 const notionPageIdentifier = "notion.so/";
 const isNotionPage = (url: string) => url.includes(notionPageIdentifier);
 
+/**
+ * TODO: use a chain of responsability pattern
+ * TODO: move to own file
+ */
 const formatLinkLabel = (
   matchedText: string,
   { url, domain }: StandardUrlType
@@ -64,42 +56,47 @@ const formatLinkLabel = (
   return `[${domain}] ${matchedText} -> ${formattedUrl}`;
 };
 
-export function activate(context: ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
   notifyExtensionStarted();
 
   const codelensProvider = new CodelensProvider(context.globalState);
 
-  languages.registerCodeLensProvider("*", codelensProvider);
+  vscode.languages.registerCodeLensProvider("*", codelensProvider);
 
-  commands.registerCommand("standard-jit.enableCodeLens", () => {
-    workspace
+  vscode.commands.registerCommand("standard-jit.enableCodeLens", () => {
+    vscode.workspace
       .getConfiguration("standard-jit")
       .update("enableCodeLens", true, true);
   });
 
-  commands.registerCommand("standard-jit.disableCodeLens", () => {
-    workspace
+  vscode.commands.registerCommand("standard-jit.disableCodeLens", () => {
+    vscode.workspace
       .getConfiguration("standard-jit")
       .update("enableCodeLens", false, true);
   });
 
-  commands.registerCommand(
+  vscode.commands.registerCommand(
     "standard-jit.hideStandard",
     (standardUri: string) => {
       hideStandard(context.globalState)(standardUri);
     }
   );
 
-  commands.registerCommand("standard-jit.unhideStandards", () => {
+  vscode.commands.registerCommand("standard-jit.unhideStandards", () => {
     notifyStandardsUnhidden();
 
     context.globalState.update(standardUrisToHideKey, undefined);
   });
 
-  commands.registerCommand(
+  /**
+   * TODO:
+   * - get all context in extension constructor
+   * - extract this function body into a function
+   */
+   vscode.commands.registerCommand(
     "standard-jit.codelensAction",
     (matchedText: string, matchedRessources: StandardUrlType[]) => {
-      const quickPick = window.createQuickPick<RedirectionQuickPickItem>();
+      const quickPick = vscode.window.createQuickPick<RedirectionQuickPickItem>();
       quickPick.canSelectMany = false;
 
       const urisToHide =
@@ -126,11 +123,11 @@ export function activate(context: ExtensionContext) {
 
         if (type === "link") {
           notifyStandardClicked({ url });
-          env.openExternal(Uri.parse(url));
+          vscode.env.openExternal(vscode.Uri.parse(url));
         }
         if (type === "hide") {
           notifyStandardHidden({ url });
-          commands.executeCommand("standard-jit.hideStandard", url);
+          vscode.commands.executeCommand("standard-jit.hideStandard", url);
         }
 
         quickPick.dispose();

@@ -1,9 +1,9 @@
-import { ExtensionContext } from "vscode";
+import * as vscode from "vscode";
 
 export const standardUrisToHideKey = "standardUrisToHide";
 
 export const hideStandard =
-  (state: ExtensionContext["globalState"]) => (standardUri: string) => {
+  (state: vscode.ExtensionContext["globalState"]) => (standardUri: string) => {
     const standardUrisToHide = state.get<string[]>(standardUrisToHideKey);
 
     state.update(
@@ -15,7 +15,7 @@ export const hideStandard =
   };
 
 export const showStandard =
-  (state: ExtensionContext["globalState"]) => (standardUri: string) => {
+  (state: vscode.ExtensionContext["globalState"]) => (standardUri: string) => {
     const standardUrisToHide = state.get<string[]>(standardUrisToHideKey);
     if (!standardUrisToHide) {
       return;
