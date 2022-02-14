@@ -134,11 +134,7 @@ export class CodelensProvider
     codeLens: StandardCodeLens,
     _: vscode.CancellationToken
   ) {
-    if (
-      vscode.workspace
-        .getConfiguration("standard-jit")
-        .get("enableCodeLens", true)
-    ) {
+    if (isExtensionEnabled()) {
       codeLens.command = {
         title: "Some technical standards may be of interest to you",
         tooltip: "",
