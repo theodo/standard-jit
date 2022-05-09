@@ -17,7 +17,6 @@ import {
 export class CodelensProvider
   implements vscode.CodeLensProvider<StandardCodeLens>
 {
-  private codeLenses: StandardCodeLens[] = [];
   private regex: RegExp;
   private globalState: vscode.Memento;
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
@@ -74,6 +73,50 @@ export class CodelensProvider
     return String(this.regex) !== String(emptyRegex);
   }
 
+  private buildCodeLenseFromMatch(
+    {
+      matchedKeyword,
+      index,
+    }: {
+      matchedKeyword: string;
+      index: number;
+    },
+    document: vscode.TextDocument
+  ) {
+    const matchedKeywordRange = getRangeAssociatedWithMatchedKeywordIndex({
+      document,
+      matchedKeywordIndex: index,
+    });
+
+    const urisToHide =
+      this.globalState.get<string[]>(standardUrisToHideKey) || [];
+
+    const areAllStandardsAssociatedWithKeywordHidden =
+      this.standardKeywordToUriMapping[matchedKeyword].every(({ url }) => {
+        return urisToHide.includes(url);
+      });
+
+    if (matchedKeywordRange && !areAllStandardsAssociatedWithKeywordHidden) {
+      return new StandardCodeLens(matchedKeyword, matchedKeywordRange);
+    }
+  }
+
+  private findAllMatches(document: vscode.TextDocument) {
+    const regex = new RegExp(this.regex);
+    const text = document.getText();
+
+    let match;
+    let allMatches = [];
+
+    while ((match = regex.exec(text)) !== null) {
+      const { 0: matchedKeyword, index } = match;
+
+      allMatches.push({ matchedKeyword, index });
+    }
+
+    return allMatches;
+  }
+
   public provideCodeLenses(
     document: vscode.TextDocument,
     _: vscode.CancellationToken
@@ -86,46 +129,18 @@ export class CodelensProvider
       return [];
     }
 
-    this.codeLenses = [];
+    const allMatches = this.findAllMatches(document);
 
-    const regex = new RegExp(this.regex);
-    const text = document.getText();
-    const urisToHide =
-      this.globalState.get<string[]>(standardUrisToHideKey) || [];
+    const codeLenses: StandardCodeLens[] = allMatches
+      .map(({ matchedKeyword, index }) => {
+        return this.buildCodeLenseFromMatch(
+          { matchedKeyword, index },
+          document
+        );
+      })
+      .filter((codeLens): codeLens is StandardCodeLens => !!codeLens);
 
-    let matches;
-    while ((matches = regex.exec(text)) !== null) {
-      const { 0: matchedKeyword, index } = matches;
-
-      try {
-        const matchedKeywordRange = getRangeAssociatedWithMatchedKeywordIndex({
-          document,
-          matchedKeywordIndex: index,
-        });
-
-        const areAllStandardsAssociatedWithKeywordHidden =
-          this.standardKeywordToUriMapping[matchedKeyword].every(({ url }) => {
-            return urisToHide.includes(url);
-          });
-
-        if (
-          matchedKeywordRange &&
-          !areAllStandardsAssociatedWithKeywordHidden
-        ) {
-          this.codeLenses.push(
-            new StandardCodeLens(matchedKeyword, matchedKeywordRange)
-          );
-        }
-      } catch (err: any) {
-        notifyErrored({
-          context: JSON.stringify({ message: err?.message, matchedKeyword }),
-        });
-
-        console.error(err);
-      }
-    }
-
-    return this.codeLenses;
+    return codeLenses;
   }
 
   public resolveCodeLens(
