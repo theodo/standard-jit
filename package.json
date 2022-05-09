@@ -13,7 +13,11 @@
   "engines": {
     "vscode": "^1.62.0"
   },
-  "keywords": ["theodo", "standard", "jit"],
+  "keywords": [
+    "theodo",
+    "standard",
+    "jit"
+  ],
   "activationEvents": [
     "onStartupFinished",
     "onCommand:standard-jit.enableCodeLens"
@@ -86,6 +90,7 @@
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "@vscode/test-electron": "^1.6.2",
+    "axios": "^0.27.2",
     "dotenv": "^10.0.0",
     "eslint": "^8.1.0",
     "glob": "^7.1.7",
