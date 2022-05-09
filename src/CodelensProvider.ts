@@ -117,6 +117,30 @@ export class CodelensProvider
     return allMatches;
   }
 
+  private filterMultipleMatches(
+    matches: {
+      matchedKeyword: string;
+      index: number;
+    }[]
+  ) {
+    let matchedKeywords: string[] = [];
+    let uniqueMatches: {
+      matchedKeyword: string;
+      index: number;
+    }[] = [];
+
+    matches.forEach((match) => {
+      if (matchedKeywords.includes(match.matchedKeyword)) {
+        return;
+      }
+
+      matchedKeywords.push(match.matchedKeyword);
+      uniqueMatches.push(match);
+    });
+
+    return uniqueMatches;
+  }
+
   public provideCodeLenses(
     document: vscode.TextDocument,
     _: vscode.CancellationToken
@@ -130,14 +154,12 @@ export class CodelensProvider
     }
 
     const allMatches = this.findAllMatches(document);
+    const uniqueAllMatches = this.filterMultipleMatches(allMatches);
 
-    const codeLenses: StandardCodeLens[] = allMatches
-      .map(({ matchedKeyword, index }) => {
-        return this.buildCodeLenseFromMatch(
-          { matchedKeyword, index },
-          document
-        );
-      })
+    const codeLenses: StandardCodeLens[] = uniqueAllMatches
+      .map(({ matchedKeyword, index }) =>
+        this.buildCodeLenseFromMatch({ matchedKeyword, index }, document)
+      )
       .filter((codeLens): codeLens is StandardCodeLens => !!codeLens);
 
     return codeLenses;
