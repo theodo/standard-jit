@@ -78,74 +78,73 @@ export class CodelensProvider
     document: vscode.TextDocument,
     _: vscode.CancellationToken
   ): StandardCodeLens[] | Thenable<StandardCodeLens[]> {
-    if (isExtensionEnabled()) {
-      this.codeLenses = [];
-
-      if (!this.isKeywordRegexInitialized()) {
-        return [];
-      }
-
-      const regex = new RegExp(this.regex);
-      const text = document.getText();
-      const urisToHide =
-        this.globalState.get<string[]>(standardUrisToHideKey) || [];
-
-      let matches;
-
-      while ((matches = regex.exec(text)) !== null) {
-        const { 0: matchedKeyword, index } = matches;
-
-        try {
-          const matchedKeywordRange = getRangeAssociatedWithMatchedKeywordIndex(
-            { document, matchedKeywordIndex: index }
-          );
-
-          const areAllStandardsAssociatedWithKeywordHidden =
-            this.standardKeywordToUriMapping[matchedKeyword].every(
-              ({ url }) => {
-                return urisToHide.includes(url);
-              }
-            );
-
-          if (
-            matchedKeywordRange &&
-            !areAllStandardsAssociatedWithKeywordHidden
-          ) {
-            this.codeLenses.push(
-              new StandardCodeLens(matchedKeyword, matchedKeywordRange)
-            );
-          }
-        } catch (err: any) {
-          notifyErrored({
-            context: JSON.stringify({ message: err?.message, matchedKeyword }),
-          });
-
-          console.error(err);
-        }
-      }
-
-      return this.codeLenses;
+    if (!isExtensionEnabled()) {
+      return [];
     }
 
-    return [];
+    if (!this.isKeywordRegexInitialized()) {
+      return [];
+    }
+
+    this.codeLenses = [];
+
+    const regex = new RegExp(this.regex);
+    const text = document.getText();
+    const urisToHide =
+      this.globalState.get<string[]>(standardUrisToHideKey) || [];
+
+    let matches;
+    while ((matches = regex.exec(text)) !== null) {
+      const { 0: matchedKeyword, index } = matches;
+
+      try {
+        const matchedKeywordRange = getRangeAssociatedWithMatchedKeywordIndex({
+          document,
+          matchedKeywordIndex: index,
+        });
+
+        const areAllStandardsAssociatedWithKeywordHidden =
+          this.standardKeywordToUriMapping[matchedKeyword].every(({ url }) => {
+            return urisToHide.includes(url);
+          });
+
+        if (
+          matchedKeywordRange &&
+          !areAllStandardsAssociatedWithKeywordHidden
+        ) {
+          this.codeLenses.push(
+            new StandardCodeLens(matchedKeyword, matchedKeywordRange)
+          );
+        }
+      } catch (err: any) {
+        notifyErrored({
+          context: JSON.stringify({ message: err?.message, matchedKeyword }),
+        });
+
+        console.error(err);
+      }
+    }
+
+    return this.codeLenses;
   }
 
   public resolveCodeLens(
     codeLens: StandardCodeLens,
     _: vscode.CancellationToken
   ) {
-    if (isExtensionEnabled()) {
-      codeLens.command = {
-        title: "Some technical standards may be of interest to you",
-        tooltip: "",
-        command: "standard-jit.codelensAction",
-        arguments: [
-          codeLens.matchingKeyword,
-          this.standardKeywordToUriMapping[codeLens.matchingKeyword],
-        ],
-      };
-      return codeLens;
+    if (!isExtensionEnabled()) {
+      return null;
     }
-    return null;
+
+    codeLens.command = {
+      title: "Some technical standards may be of interest to you",
+      tooltip: "",
+      command: "standard-jit.codelensAction",
+      arguments: [
+        codeLens.matchingKeyword,
+        this.standardKeywordToUriMapping[codeLens.matchingKeyword],
+      ],
+    };
+    return codeLens;
   }
 }
