@@ -1,8 +1,6 @@
 import { isArray, mergeWith } from "lodash";
 import * as vscode from "vscode";
 
-import { DBType } from "./remoteStandards";
-
 export type KeywordType = string;
 export type DomainScopedUrl = { url: string; domain: string };
 export type KeywordToDomainScopedUrlMappingType = Record<
@@ -53,7 +51,7 @@ export const isExtensionEnabled = () => {
 export const getDomainsToFetch = () => {
   return vscode.workspace
     .getConfiguration("standard-jit")
-    .get("standardsToInclude") as DBType[];
+    .get("standardsToInclude") as string[];
 };
 
 export const mergeStandardMappings = ({
@@ -64,17 +62,14 @@ export const mergeStandardMappings = ({
   sourceMapping: KeywordToDomainScopedUrlMappingType;
   additionalMapping: KeywordToDomainScopedUrlMappingType;
   additionalMappingDomain: string;
-}) => {
+}): KeywordToDomainScopedUrlMappingType => {
   return mergeWith(
     sourceMapping,
     additionalMapping,
-    (objValue: DomainScopedUrl[], srcValue: string[]) => {
+    (objValue: DomainScopedUrl[] | undefined, srcValue: DomainScopedUrl[]) => {
       return [
         ...(isArray(objValue) ? objValue : []),
-        ...srcValue.map((url: string) => ({
-          domain: additionalMappingDomain,
-          url,
-        })),
+        ...srcValue,
       ];
     }
   );

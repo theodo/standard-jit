@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
-import axios from "axios";
 
 import { standardUrisToHideKey } from "./standardsToHide";
-import { getRemoteStandardUri } from "./remoteStandards";
+import { ApiStandard, getStandards } from "./remoteStandards";
 import { notifyErrored } from "./analytics";
 import {
   buildKeywordMatchingRegex,
@@ -44,12 +43,11 @@ export class CodelensProvider
 
   private buildStandardMappingFromDomains({ domains }: { domains: string[] }) {
     domains.map((domain) => {
-      axios
-        .get(getRemoteStandardUri(domain))
-        .then(({ data }: { data: KeywordToDomainScopedUrlMappingType }) => {
+      getStandards(domain)
+        .then((standards: ApiStandard[]) => {
           this.standardKeywordToUriMapping = mergeStandardMappings({
             sourceMapping: this.standardKeywordToUriMapping,
-            additionalMapping: data,
+            additionalMapping: this.formatStandards(standards, domain),
             additionalMappingDomain: domain,
           });
 
@@ -99,6 +97,23 @@ export class CodelensProvider
     if (matchedKeywordRange && !areAllStandardsAssociatedWithKeywordHidden) {
       return new StandardCodeLens(matchedKeyword, matchedKeywordRange);
     }
+  }
+
+  private formatStandards(standards: ApiStandard[], domain: string): KeywordToDomainScopedUrlMappingType {
+    return standards.reduce<KeywordToDomainScopedUrlMappingType>(
+      (formattedStandards, standard) => {
+        const domainUrl = {url: standard.url, domain};
+        standard.keywords.split(',').forEach(keyword => {
+          if(keyword in formattedStandards) {
+            formattedStandards[keyword].push(domainUrl);
+          } else {
+            formattedStandards[keyword] = [domainUrl];
+          }
+        });
+        return formattedStandards;
+      },
+      {}
+    );
   }
 
   private findAllMatches(document: vscode.TextDocument) {
