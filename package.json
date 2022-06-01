@@ -39,6 +39,11 @@
         "title": "Unhide standards",
         "command": "standard-jit.unhideStandards",
         "category": "Standard JIT"
+      },
+      {
+        "title": "Search for jocondes",
+        "command": "standard-jit.searchJocondes",
+        "category": "Joconde JIT"
       }
     ],
     "configuration": {

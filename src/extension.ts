@@ -9,6 +9,7 @@ import {
 } from "./analytics";
 import { CodelensProvider } from "./CodelensProvider";
 import { DomainScopedUrl } from "./CodelensProvider.utils";
+import { getJocondes } from "./remoteJocondes";
 import { hideStandard, standardUrisToHideKey } from "./standardsToHide";
 
 // this method is called when your extension is activated
@@ -88,6 +89,28 @@ export function activate(context: vscode.ExtensionContext) {
     notifyStandardsUnhidden();
 
     context.globalState.update(standardUrisToHideKey, undefined);
+  });
+
+  vscode.commands.registerCommand("standard-jit.searchJocondes", () => {
+    const standardGroups = vscode.workspace
+      .getConfiguration("standard-jit")
+      .get("standardsToInclude") as string[];
+
+    const quickPick = vscode.window.createInputBox();
+    let value;
+
+    quickPick.onDidAccept(() => {
+      value = quickPick.value;
+
+      getJocondes(quickPick.value, standardGroups).then((data) => {
+        console.log("jocondes", data);
+        vscode.window.showInformationMessage(JSON.stringify(data));
+      });
+
+      quickPick.dispose();
+    });
+
+    quickPick.show();
   });
 
   /**
