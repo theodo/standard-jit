@@ -2,7 +2,7 @@ import { isArray, mergeWith } from "lodash";
 import * as vscode from "vscode";
 
 export type KeywordType = string;
-export type DomainScopedUrl = { url: string; domain: string };
+export type DomainScopedUrl = { url: string; domain: string; id: string };
 export type KeywordToDomainScopedUrlMappingType = Record<
   KeywordType,
   DomainScopedUrl[]
