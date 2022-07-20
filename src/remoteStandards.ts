@@ -6,6 +6,7 @@ const remoteStandardBaseUri = "https://standard-jit.herokuapp.com";
 export type ApiStandard = {
   url: string,
   keywords: string,
+  id: string,
 };
 
 export type ApiStandardGroup = {

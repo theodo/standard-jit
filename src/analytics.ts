@@ -14,17 +14,17 @@ const airtableEndpoint =
   "https://gallant-wozniak-0ccf17.netlify.app/.netlify/functions/addrow";
 
 const postAnalytics = async ({
-  url,
+  id,
   action,
   context,
 }: {
-  url?: string;
+  id?: string;
   action: ActionType;
   context?: string;
 }) => {
   await axios
     .post(airtableEndpoint, {
-      redirect: url,
+      redirect: id,
       action,
       context,
       userId: vscode.env.machineId,
@@ -34,12 +34,12 @@ const postAnalytics = async ({
     });
 };
 
-export const notifyStandardClicked = async ({ url }: { url: string }) => {
-  await postAnalytics({ url, action: ACTIONS.VISIT });
+export const notifyStandardClicked = async ({ id }: { id: string }) => {
+  await postAnalytics({ id, action: ACTIONS.VISIT });
 };
 
-export const notifyStandardHidden = async ({ url }: { url: string }) => {
-  await postAnalytics({ url, action: ACTIONS.HIDE });
+export const notifyStandardHidden = async ({ id }: { id: string }) => {
+  await postAnalytics({ id, action: ACTIONS.HIDE });
 };
 
 export const notifyStandardsUnhidden = async () => {
