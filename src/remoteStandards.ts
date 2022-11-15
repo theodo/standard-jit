@@ -1,7 +1,7 @@
 import axios from "axios";
 import { notifyErrored } from "./analytics";
 
-const remoteStandardBaseUri = "https://standard-jit.herokuapp.com";
+const remoteStandardBaseUri = "https://standard-jit.theo.do";
 
 export type ApiStandard = {
   url: string,
