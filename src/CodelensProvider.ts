@@ -102,7 +102,7 @@ export class CodelensProvider
   private formatStandards(standards: ApiStandard[], domain: string): KeywordToDomainScopedUrlMappingType {
     return standards.reduce<KeywordToDomainScopedUrlMappingType>(
       (formattedStandards, standard) => {
-        const domainUrl = {url: standard.url, domain};
+        const domainUrl = {url: standard.url, domain, id: standard.id};
         standard.keywords.split(',').forEach(keyword => {
           if(keyword in formattedStandards) {
             formattedStandards[keyword].push(domainUrl);

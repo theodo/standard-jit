@@ -20,6 +20,7 @@ type QuickPickItemType = "link" | "hide";
 interface RedirectionQuickPickItem extends vscode.QuickPickItem {
   url: string;
   type: QuickPickItemType;
+  id: string;
 }
 
 const notionPageIdentifier = "notion.so/";
@@ -111,24 +112,25 @@ export function activate(context: vscode.ExtensionContext) {
         label: formatLinkLabel(matchedText, ressource),
         url: ressource.url,
         type: "link" as QuickPickItemType,
+        id: ressource.id
       }));
       const hideQuickPickItems = ressourcesToDisplay.map((ressource) => ({
         label: `Hide this standard: ${formatLinkLabel(matchedText, ressource)}`,
         url: ressource.url,
         type: "hide" as QuickPickItemType,
+        id: ressource.id
       }));
-
       quickPick.items = [...linkQuickPickItems, ...hideQuickPickItems];
 
       quickPick.onDidChangeSelection((selection) => {
-        const { type, url } = selection[0];
+        const { type, url, id } = selection[0];
 
         if (type === "link") {
-          notifyStandardClicked({ url });
+          notifyStandardClicked({ id });
           vscode.env.openExternal(vscode.Uri.parse(url));
         }
         if (type === "hide") {
-          notifyStandardHidden({ url });
+          notifyStandardHidden({ id });
           vscode.commands.executeCommand("standard-jit.hideStandard", url);
         }
 

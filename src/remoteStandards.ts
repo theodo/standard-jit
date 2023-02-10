@@ -6,6 +6,7 @@ const remoteStandardBaseUri = "https://standard-jit.theo.do";
 export type ApiStandard = {
   url: string,
   keywords: string,
+  id: string,
 };
 
 export type ApiStandardGroup = {
